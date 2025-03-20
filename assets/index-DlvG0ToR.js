@@ -281,7 +281,7 @@ const TopRatedContainer = ({ popularMovie }) => {
   return $topRatedContainer;
 };
 const SEARCH_BUTTON_IMAGE_SRC = "./images/searchButtonIcon.png";
-const PAGE$1 = 1;
+const PAGE = 1;
 const SEARCH_BAR_PLACEHOLDER = "검색어를 입력하세요";
 const SearchBar = () => {
   const $form = createElement({
@@ -312,7 +312,7 @@ const SearchBar = () => {
     params.set("query", query);
     window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
     document.querySelector(".list-title").textContent = `"${query}" 검색 결과`;
-    const searchMovieData = await fetchSearchMovies(query, PAGE$1);
+    const searchMovieData = await fetchSearchMovies(query, PAGE);
     movies.updateMovies(searchMovieData.results);
     const $thumbnailList = document.querySelector(".thumbnail-list");
     if ($thumbnailList) $thumbnailList.remove();
@@ -460,12 +460,14 @@ deleteParams();
 Main({
   movies: "loading"
 });
-const PAGE = 1;
-fetchPopularMovies(PAGE).then((popularMovieData) => {
+async function init() {
   var _a;
+  const PAGE2 = 1;
+  const popularMovieData = await fetchPopularMovies(PAGE2);
   movies.updateMovies(popularMovieData.results);
   (_a = document.querySelector("#wrap")) == null ? void 0 : _a.remove();
-});
-Main({
-  movies: movies.movieList
-});
+  Main({
+    movies: movies.movieList
+  });
+}
+init();
