@@ -111,8 +111,8 @@ const MoviePreviewInfo = ({ movie, bigFont = true }) => {
 };
 const imageUrl = (path, size = 400) => `https://image.tmdb.org/t/p/w${size}${path}`;
 const MovieItem = ({ movie }) => {
-  const title = movie.title;
-  const posterPath = movie.poster_path;
+  const title = movie == null ? void 0 : movie.title;
+  const posterPath = movie == null ? void 0 : movie.poster_path;
   const $li = createElement({
     tag: "li"
   });
