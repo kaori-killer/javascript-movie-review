@@ -82,8 +82,8 @@ const createElement = ({
 };
 const STAR_IMG_SRC = "./images/star_empty.png";
 const MoviePreviewInfo = ({ movie, bigFont = true }) => {
-  const title = movie.title;
-  const voteAverage = movie.vote_average;
+  const title = movie == null ? void 0 : movie.title;
+  const voteAverage = movie == null ? void 0 : movie.vote_average;
   const $fragment2 = document.createDocumentFragment();
   const $rate = createElement({ tag: "div", classNames: ["rate"] });
   const $starImg = createElement({
@@ -111,8 +111,8 @@ const MoviePreviewInfo = ({ movie, bigFont = true }) => {
 };
 const imageUrl = (path, size = 400) => `https://image.tmdb.org/t/p/w${size}${path}`;
 const MovieItem = ({ movie }) => {
-  const title = movie.title;
-  const posterPath = movie.poster_path;
+  const title = movie == null ? void 0 : movie.title;
+  const posterPath = movie == null ? void 0 : movie.poster_path;
   const $li = createElement({
     tag: "li"
   });
