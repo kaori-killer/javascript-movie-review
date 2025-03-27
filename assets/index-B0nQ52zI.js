@@ -152,7 +152,7 @@ const SkeletonMovieItem = () => {
         `;
   return $div;
 };
-const NOTHING_IMG_SRC = "./images/으아아.png";
+const NothingImg = "/javascript-movie-review/assets/%EC%9C%BC%EC%95%84%EC%95%84-Bye2rQsa.png";
 const NOTHING_TEXT = "검색 결과가 없습니다.";
 const $fragment = document.createDocumentFragment();
 const NothingMovieList = () => {
@@ -162,7 +162,7 @@ const NothingMovieList = () => {
   });
   const $img = createElement({
     tag: "img",
-    src: NOTHING_IMG_SRC,
+    src: NothingImg,
     alt: "으아아",
     classNames: ["nothing-img"]
   });
@@ -293,7 +293,7 @@ const TopRatedContainer = ({ popularMovie }) => {
   $topRatedMovie.append(Button({ text: BUTTON_DETAIL, type: "detail" }));
   return $topRatedContainer;
 };
-const SEARCH_BUTTON_IMAGE_SRC = "./images/searchButtonIcon.png";
+const SearchButtonImage = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAC5SURBVHgBlVIBDYMwEPxOAQ5WCUjonCABB+CEOaiEzsEkdA7AQfds1+TWtGRccmny93f9PogAKaVOOSlj+mJVemUvLewiGluYaiZLtwSlo/pM5rE0LhB8Y5oxj14KTwjNt9BEPRc/kAOofEfbkGsX5QaxO/Becb44LSBtbtxmaUEdC661OXymCG2ppfLa90ZPk3Dd1swDpWesCI2l2VQCnB75LQ9jzIbmoLRY0E3+Rfr9w6KRE6Cb5Q2u4UqS3Rky4QAAAABJRU5ErkJggg==";
 const PAGE = 1;
 const SEARCH_BAR_PLACEHOLDER = "검색어를 입력하세요";
 function createSearchBarUI(onSubmit) {
@@ -312,7 +312,7 @@ function createSearchBarUI(onSubmit) {
   });
   const $img = createElement({
     tag: "img",
-    src: SEARCH_BUTTON_IMAGE_SRC
+    src: SearchButtonImage
   });
   $button.appendChild($img);
   $form.append($input, $button);
@@ -346,7 +346,7 @@ async function performSearch(query) {
 const SearchBar = () => {
   return createSearchBarUI(performSearch);
 };
-const LOGO_IMG_SRC = "./images/logo.png";
+const LogoImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHsAAAAUCAYAAACtZULwAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAUdSURBVHgB7VrhcRsrEP6cyX+rBFyBlQpMKrBeBZYreHYFUip4cgVSKkhSgXgVRKlApAKrAx77AA+3t3CcpHGcmXwzjO5gF5Zd2GU5XTjnlgDsxcXFxj9r/0xl5csDulh5mgOrQ+Qfgsj72vCyOl7n5brAifDdKv+zZ9Ub3/V9ZWzS+RVeEy7g2ZetL/v4rlwfWuCdujYovAFIguEMKOhrPTD2HmdElEHnhdO8z56VL5NKf1NfjFD3B28DS1/usnfrS8dzJGPvvEv56IJLXhQ6uxbqfjdjf8KvAx/71cNaMraKhr6p0GqhrkZfhR+PvIhC36NYXw5+8e0E+o7n8TS20rdEu0G7bNMoW8Ihlt2R548Nez8UxlWQvaxFXS+XQn+qM54rxFgX4jjHhHXWi0Ol/jIeivNbN4y9L4uM70GgmUOAr18LtBPXl2/P+HSjbN99meVKFWh4zN6z9m1usCjzc8PYe9fVy9y1Yfsu8hgE//6UyWcFPU5zxQjtO1TggtFpkhrDINplphQj0JQ8i2bvZmg3urBwWmUjPXzJDX4iaGHMUT8zJSgEvTxgJJKxk/vIXcG/Av208FzjybFG24Ry0G6bRffFDdZTtqfl7pfwGcNYYDz+wYlwwVses2j+xkgkY5OCaFXPszZpl14XnhMsCoi7WgtN5E3uY3ks9HEbf7+x+onrp3Va4DeoIHopxaqtLx8RPB6VD+jLptzpaaW0aWw2bhqb20PF3wPKerdZeYnZFINoB23iO01CyqFfYlzkyfHs5NiV+tNC/VcuXaGPfWyT4tMD49+y9u9Z235Ev0tBtqVAN3cnxGwn62UrjL0R6NTQ3HK8Z6vgOb2Q2/QMtGpyt0uTmsT4x1dkNV6jv3NEHjo1u/5dR5KBFseatWmEG7/kEjVrb3HhSqi79f3dNNCdCklvOhqL2n4geKZlLC8oZSMlJGOT4fYFQTSrmzr54ukHzgeLrmL/NzYtMj+2YTLlBtFCXwbHofUOQeEExDnRgrwT+qVC8TydJ8geFPbMWEMTUsy2CEm/Ye2SAaeQFWFQx9iDWQn8EEhxO8lzy9osz0vfIryMcwT92wFSmid5tq2Ts6Eq0s4mpSxjnNJZe+mQJhnOoo4DzgOD/slZQ/ZCBqeNYxvozrKYSP8IKZVGmAd5LDKupGuFkPpdjbngScZOMYJ3bAQeLdQdYoxXGIfSble8//TgxzHCWeI2unfO1xKvO/1n+ObHWqEB7oQTeeRVrHoVjZ9SSSoL9EMbufgNGpGMnY7vCpkS42Gpd0gT+mlZ3RJN71LEyRcVnNegm5uSMjSjoQVo0IZDQbYVk+0L+jnxX5DnNvP0PxHiq0EZS/Tj9VWSKYahtJG4R6uFRhUzgp+pouVDiOQeOVoOZxZhArmA0+hRbHxPd9JD/VPczpVOfAuBphVGqJsxZV1CvvxId+YcuUwGZVihbu3H5vLfQR47geykWPu88xZzst737Kx95YYxi7TFPDu2L91xUExm1cAzZxOv5qKu7U7cVfhL99rLwti1PLsVOht/ULfvMl0oyG7hWBctYYXxB5pPPM2I73aA7yvG4R5tB7Icj9nzE45AdPHH8H5m4YF0a2sM5MaJgdz4owu7gdxF7h4M6m7owIwh0ab4Q78f4jiUJikUPnEiuOFNJXV6Qj/VSih9htyhq5CX53g+oWtJ8lJ3mWxokS1mM9R+w/hsYeycl77opXB5DXnjpXBhaHz6G1neGOd75YKXpX4umRz4Dz1my31xwGpxAAAAAElFTkSuQmCC";
 const Gnb = () => {
   const $div = createElement({
     tag: "div",
@@ -358,7 +358,7 @@ const Gnb = () => {
   });
   const $logoImg = createElement({
     tag: "img",
-    src: LOGO_IMG_SRC,
+    src: LogoImg,
     alt: "MovieList"
   });
   $div.appendChild($logo);
