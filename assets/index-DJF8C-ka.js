@@ -178,10 +178,12 @@ const MovieItem = ({ movie }) => {
   };
   $li.appendChild($div);
   $div.appendChild($img);
-  $div.appendChild(MoviePreviewInfo({
-    movie,
-    bigFont: false
-  }));
+  $div.appendChild(
+    MoviePreviewInfo({
+      movie,
+      bigFont: false
+    })
+  );
   return $li;
 };
 const SkeletonMovieItem = () => {
@@ -336,10 +338,12 @@ const TopRatedContainer = ({ popularMovie }) => {
     classNames: ["top-rated-movie"]
   });
   $topRatedContainer.append($topRatedMovie);
-  $topRatedMovie.append(MoviePreviewInfo({
-    bigFont: true,
-    movie: popularMovie
-  }));
+  $topRatedMovie.append(
+    MoviePreviewInfo({
+      bigFont: true,
+      movie: popularMovie
+    })
+  );
   $topRatedMovie.append(Button({ text: BUTTON_DETAIL, type: "detail" }));
   return $topRatedContainer;
 };
