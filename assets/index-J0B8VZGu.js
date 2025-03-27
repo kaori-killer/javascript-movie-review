@@ -522,18 +522,6 @@ const Main = ({ movies: movies2, status }) => {
     $wrap.appendChild(Footer());
   }
 };
-const deleteParams = () => {
-  const params = new URLSearchParams(window.location.search);
-  if (params.has("query")) {
-    params.delete("query");
-    window.history.replaceState(
-      {},
-      "",
-      `${window.location.pathname}?${params.toString()}`
-    );
-  }
-};
-deleteParams();
 async function fetchAndRender(fetchFn) {
   var _a;
   renderMain("loading");
@@ -548,7 +536,8 @@ async function fetchAndRender(fetchFn) {
 }
 fetchAndRender(async () => {
   const PAGE2 = 1;
-  const res = await fetchPopularMovies(PAGE2);
+  const params = new URLSearchParams(window.location.search);
+  const res = params.has("query") ? await fetchSearchMovies(params.get("query") || "", PAGE2) : await fetchPopularMovies(PAGE2);
   movies.updateMovies(res.results);
   return movies.movieList;
 });
