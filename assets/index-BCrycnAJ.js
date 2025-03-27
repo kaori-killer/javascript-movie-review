@@ -171,6 +171,7 @@ const NothingMovieList = () => {
   $fragment.appendChild($img);
   return $fragment;
 };
+const SKELETON_ITEMS_COUNT = 20;
 const MovieList = ({ movies: movies2 }) => {
   const $ul = createElement({
     tag: "ul",
@@ -180,7 +181,7 @@ const MovieList = ({ movies: movies2 }) => {
     return NothingMovieList();
   }
   if (movies2 === "loading") {
-    [1, 1, 1].forEach(() => {
+    Array(SKELETON_ITEMS_COUNT).fill(null).forEach(() => {
       $ul.appendChild(SkeletonMovieItem());
     });
   } else {
@@ -221,12 +222,16 @@ class Movies {
 }
 _movieList = new WeakMap();
 const movies = new Movies();
+const INITIAL_PAGE = 1;
 class Page {
   constructor() {
     __privateAdd(this, _page);
-    __privateSet(this, _page, 1);
+    __privateSet(this, _page, INITIAL_PAGE);
   }
-  getPage() {
+  reset() {
+    __privateSet(this, _page, INITIAL_PAGE);
+  }
+  getNextPage() {
     __privateWrapper(this, _page)._++;
     return __privateGet(this, _page);
   }
@@ -240,12 +245,14 @@ const Button = ({ text, type }) => {
   });
   $button.textContent = text;
   $button.addEventListener("click", async () => {
-    document.querySelector(".search-bar");
     const params = new URLSearchParams(window.location.search);
     let fetchedMovies;
-    const currentPage = page.getPage();
+    const currentPage = page.getNextPage();
     if (params.has("query")) {
-      fetchedMovies = await fetchSearchMovies(params.get("query"), currentPage);
+      fetchedMovies = await fetchSearchMovies(
+        params.get("query") || "",
+        currentPage
+      );
     } else {
       fetchedMovies = await fetchPopularMovies(currentPage);
     }
@@ -253,12 +260,18 @@ const Button = ({ text, type }) => {
     if (fetchedMovies.totalPages === currentPage) {
       $button.classList.toggle("disappear");
     }
-    document.querySelector(".thumbnail-list").remove();
-    document.querySelector("section").appendChild(
-      MovieList({
-        movies: movies.movieList
-      })
-    );
+    const thumbnailList = document.querySelector(".thumbnail-list");
+    if (thumbnailList) {
+      thumbnailList.remove();
+    }
+    const section = document.querySelector("section");
+    if (section) {
+      section.appendChild(
+        MovieList({
+          movies: movies.movieList
+        })
+      );
+    }
   });
   return $button;
 };
@@ -283,7 +296,7 @@ const TopRatedContainer = ({ popularMovie }) => {
 const SEARCH_BUTTON_IMAGE_SRC = "./images/searchButtonIcon.png";
 const PAGE = 1;
 const SEARCH_BAR_PLACEHOLDER = "검색어를 입력하세요";
-const SearchBar = () => {
+function createSearchBarUI(onSubmit) {
   const $form = createElement({
     tag: "form",
     classNames: ["search-bar-container"]
@@ -303,27 +316,37 @@ const SearchBar = () => {
   });
   $button.appendChild($img);
   $form.append($input, $button);
-  const handleSearch = async (event) => {
+  $form.addEventListener("submit", (event) => {
     event.preventDefault();
-    const query = $input.value.trim();
-    if (!query) return;
-    document.querySelector(".background-container").classList.add("disappear");
-    const params = new URLSearchParams(window.location.search);
-    params.set("query", query);
-    window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
-    document.querySelector(".list-title").textContent = `"${query}" 검색 결과`;
-    const searchMovieData = await fetchSearchMovies(query, PAGE);
-    movies.updateMovies(searchMovieData.results);
-    const $thumbnailList = document.querySelector(".thumbnail-list");
-    if ($thumbnailList) $thumbnailList.remove();
-    document.querySelector("section").appendChild(
-      MovieList({ movies: movies.movieList })
-    );
-  };
-  $form.addEventListener("submit", handleSearch);
+    onSubmit($input.value.trim());
+  });
   return $form;
+}
+function updateURLQueryParam(query) {
+  const params = new URLSearchParams(window.location.search);
+  params.set("query", query);
+  page.reset();
+  window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+}
+function updateDOMForSearch(query) {
+  document.querySelector(".background-container").classList.add("disappear");
+  document.querySelector(".list-title").textContent = `"${query}" 검색 결과`;
+  const $thumbnailList = document.querySelector(".thumbnail-list");
+  if ($thumbnailList) $thumbnailList.remove();
+}
+async function performSearch(query) {
+  if (!query) return;
+  updateURLQueryParam(query);
+  updateDOMForSearch(query);
+  const searchMovieData = await fetchSearchMovies(query, PAGE);
+  movies.updateMovies(searchMovieData.results);
+  const $movieList = MovieList({ movies: movies.movieList });
+  document.querySelector("section").appendChild($movieList);
+}
+const SearchBar = () => {
+  return createSearchBarUI(performSearch);
 };
-const LOGO_IMG_SRC$1 = "./images/logo.png";
+const LOGO_IMG_SRC = "./images/logo.png";
 const Gnb = () => {
   const $div = createElement({
     tag: "div",
@@ -335,7 +358,7 @@ const Gnb = () => {
   });
   const $logoImg = createElement({
     tag: "img",
-    src: LOGO_IMG_SRC$1,
+    src: LOGO_IMG_SRC,
     alt: "MovieList"
   });
   $div.appendChild($logo);
@@ -394,7 +417,7 @@ const MovieContainer = ({ movies: movies2 }) => {
   $main.appendChild(Button({ text: BUTTON_MORE, type: "more" }));
   return $container;
 };
-const LOGO_IMG_SRC = "./images/woowacourse_logo.png";
+const LogoImage = "/javascript-movie-review/assets/woowacourse_logo-C2VvP7wQ.png";
 const Footer = () => {
   const $footer = createElement({
     tag: "footer",
@@ -408,7 +431,7 @@ const Footer = () => {
   });
   const $img = createElement({
     tag: "img",
-    src: LOGO_IMG_SRC,
+    src: LogoImage,
     width: "180"
   });
   const COPY_TEXT = "우아한테크코스 All Rights Reserved.";
