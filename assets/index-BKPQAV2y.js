@@ -51,7 +51,7 @@ var _page, _movieList;
     fetch(link.href, fetchOpts);
   }
 })();
-async function safeFetchJson(url, options) {
+async function fetchJson(url, options) {
   const response = await fetch(url, options);
   if (!response.ok) {
     throw new Error(`HTTP 오류: ${response.status} ${response.statusText}`);
@@ -68,7 +68,7 @@ async function fetchPopularMovies(page2) {
       Authorization: `Bearer ${"eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxYWMyODc3Y2Q4M2IwZDQ5MGRiODRhMDI5ZDBmNmMxMSIsIm5iZiI6MTc0MjI2NTAzMy4yOTksInN1YiI6IjY3ZDhkYWM5YzUzMzllYWJjNjM2NGQzYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.4zRY7Zc8S7gb3XdoyaKNQcaLuV37Z25Niw5aSHFg5sc"}`
     }
   };
-  const { results, total_pages } = await safeFetchJson(
+  const { results, total_pages } = await fetchJson(
     url,
     options
   );
@@ -85,7 +85,7 @@ async function fetchSearchMovies(query, page2) {
       Authorization: `Bearer ${"eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxYWMyODc3Y2Q4M2IwZDQ5MGRiODRhMDI5ZDBmNmMxMSIsIm5iZiI6MTc0MjI2NTAzMy4yOTksInN1YiI6IjY3ZDhkYWM5YzUzMzllYWJjNjM2NGQzYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.4zRY7Zc8S7gb3XdoyaKNQcaLuV37Z25Niw5aSHFg5sc"}`
     }
   };
-  const { results, total_pages } = await safeFetchJson(
+  const { results, total_pages } = await fetchJson(
     url,
     options
   );
@@ -126,6 +126,48 @@ const createElement = ({
   });
   return $element;
 };
+const Modal = ({ movieDetails }) => {
+  console.log(movieDetails);
+  const year = extractReleaseYear(movieDetails);
+  const genres = extractGenres(movieDetails);
+  const $div = createElement({
+    tag: "div",
+    classNames: ["modal-background", "active"],
+    id: "modalBackground"
+  });
+  $div.innerHTML = `
+          <div class="modal">
+            <button class="close-modal" id="closeModal">
+              <img src="./images/modal_button_close.png" />
+            </button>
+            <div class="modal-container">
+              <div class="modal-image">
+                <img src="${movieDetails.poster_path}" />
+              </div>
+              <div class="modal-description">
+                <h2>${movieDetails.title}</h2>
+                <p class="category">${year} · ${genres}</p>
+                <p class="rate">
+                  <img src="./images/star_filled.png" class="star" />
+                  <span>${movieDetails.vote_count}</span>
+                </p>
+                <hr />
+                <p class="detail">
+                 ${movieDetails.overview}
+                </p>
+              </div>
+            </div>
+          </div>
+      `;
+  return $div;
+};
+function extractGenres(movieDetails) {
+  const genres = movieDetails.genres.map((genre) => genre.name);
+  return genres.join(", ");
+}
+function extractReleaseYear(movieDetails) {
+  return movieDetails.release_date.split("-")[0];
+}
 const EmptyStarImage = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAxCAYAAACcXioiAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAQ4SURBVHgB7VlNctMwFP7UwrRl0/YGzgloNwyURd0TQE5AeoK2J2hyAuAEaU9QOEHMgvCzSW9QcwLChqbDNOI9RVEk106sWGZY5JvR+FlRJD29fxlYYYX/F/I79uQXxKgRAjWANh3Ro0ct0l0ptSPxQj2DYg31oIvZ5qHpLmpAcAno07+ZdWBIq+zoN5ZCgoCoQwLnhhK4oBUS8y7xGoFRhwT49CP9eqSfPb3aEBtoiH16BkJQCdDmW7AMl9VFq0w6GUCqdKvGBENoFXpj0R2LvjSUwCsERDAGtPHGVldiqBHeWf0xxwcEQkgJOMZr+3xxpHQ+Mb//CWfMIRmIDSUtlZlhplLrOJED41orIQgDecabHaP6pPY+E2OOEQChJFBkvC4E3lv0CQIgNw4o8Y6UiCNicQdjanxqQrVtQ0s9xk0bGkU5j+zR+E38tFa/1pF6aD1/GXrqfteJfkySzYkfImfjV8CS4mXjfY7jeUNkn+YXSxvxBR3Amc3II+fnEd4CS+tmQlH2bOGoO2JwC8umFS3aI8MckiuBPol3lnilqs3EyfjxQORjak/yxTsPStq/tYraKikMvY2pak769/SOhyTl3ek8j+aswb68g5qgGb4uM1Z+oxgzzg9+rheyvQTQll9xFcpfLwNeW9nMGG2r+4M9xmWAQ760BrCejjDQacI/hVqT1nYMXtDeMnYmCv7chp0asC2soymelRN5VcjPpC5ryhtGpnOMjnjpSEIhN5CR7reJNZvTCPckiT5OUTNIbU9oVwPYm5fkOnM2z5hb0OSeBNlGXcatjbVtdaX03qTNF0p+YUWWc8Mw1cXjUJWVchS3VPS7+s5RurnoJqNUSalSgI3MAnw6m9ivyoSO/lmVuaRgd1pm7lLJHOfz4gBNuIlaFKQ8HKlDicw7G+sBWmUPxisbVcYtrVixhqeojtiiO0XGWgT/dFqoED+BpNSiOlJrPu+g6c+AdEJ6gupIDLVEwe91L5S9dSOVqnyvpB3EjUkiN7Hr4xj8JBD+9CcFv7D8/MgvzfZjwBXxp0XDPa7XZ3NJvysXXxuILTopGsSbppRgwOkHvfb4unFBQpgYytMOSuuwo/+ZosKM4aB0R+mALMiZJGW7lLLnRddMMdUo+y3BRwKxtZEHuYlSFY6o9ualrtymEOq3nr6GcSGcOWOUhA8Dh5ht7KMhSTLUOFdy8yVWC4F91eBcdPGYLv2n66iVNSf95xAlsZwE9Gmp1FcqPY+tjQxpVk7C1Ccl3VqYFOKpNR/39UyKbktAlpeAjw1I65Xv/c+RFTWnGVuUbhf4cX3ibbgXYYxUzSlVBeZlBz4M9FCsmym147Kfj9Tt9P2DOiOLUgz4qFCnsJ/Tao9vX1ya0vjGnDnTsl7IL5XoU5Sc3GlGyhNR2Vn106lSK6lu66YBLEVNn2RrBZevqoRdYYUVvPAXJrOCc9SFL6sAAAAASUVORK5CYII=";
 const MoviePreviewInfo = ({ movie, bigFont = true }) => {
   const title = movie == null ? void 0 : movie.title;
@@ -157,6 +199,18 @@ const MoviePreviewInfo = ({ movie, bigFont = true }) => {
 };
 const imageUrl = (path, size = 400) => `https://image.tmdb.org/t/p/w${size}${path}`;
 const nullImage = "/javascript-movie-review/assets/nullImage-DNlbCffn.png";
+async function fetchDetailsMovie(id) {
+  const url = `https://api.themoviedb.org/3/movie/${id}?language=ko-KR`;
+  const options = {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      Authorization: `Bearer ${"eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxYWMyODc3Y2Q4M2IwZDQ5MGRiODRhMDI5ZDBmNmMxMSIsIm5iZiI6MTc0MjI2NTAzMy4yOTksInN1YiI6IjY3ZDhkYWM5YzUzMzllYWJjNjM2NGQzYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.4zRY7Zc8S7gb3XdoyaKNQcaLuV37Z25Niw5aSHFg5sc"}`
+    }
+  };
+  const results = await fetchJson(url, options);
+  return results;
+}
 const MovieItem = ({ movie }) => {
   const title = movie == null ? void 0 : movie.title;
   const posterPath = movie == null ? void 0 : movie.poster_path;
@@ -184,6 +238,12 @@ const MovieItem = ({ movie }) => {
       bigFont: false
     })
   );
+  $li.addEventListener("click", async () => {
+    const movieDetails = await fetchDetailsMovie(movie.id);
+    const $wrap = document.querySelector("#wrap");
+    console.log(Modal({ movieDetails }));
+    $wrap.appendChild(Modal({ movieDetails }));
+  });
   return $li;
 };
 const SkeletonMovieItem = () => {
