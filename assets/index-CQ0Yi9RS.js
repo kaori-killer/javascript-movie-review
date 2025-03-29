@@ -145,6 +145,7 @@ function MovieItemModal(movieDetails, rate) {
               <p>내 별점</p>
               ${Stars(rate)}
               <span>${STAR_MESSAGES[rate]} </span>
+              <span>(${rate * 2} / 10)</span>
             </div>
             <hr />
             <p class="detail">
