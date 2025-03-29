@@ -197,7 +197,24 @@ _page = new WeakMap();
 _total = new WeakMap();
 const page = new Page();
 const SearchButtonImage = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAC5SURBVHgBlVIBDYMwEPxOAQ5WCUjonCABB+CEOaiEzsEkdA7AQfds1+TWtGRccmny93f9PogAKaVOOSlj+mJVemUvLewiGluYaiZLtwSlo/pM5rE0LhB8Y5oxj14KTwjNt9BEPRc/kAOofEfbkGsX5QaxO/Becb44LSBtbtxmaUEdC661OXymCG2ppfLa90ZPk3Dd1swDpWesCI2l2VQCnB75LQ9jzIbmoLRY0E3+Rfr9w6KRE6Cb5Q2u4UqS3Rky4QAAAABJRU5ErkJggg==";
-const starMessage = {
+const FILLED_STAR_SRC$1 = "./images/star_filled.png";
+const EMPTY_STAR_SRC = "./images/star_empty.png";
+function Stars(rate) {
+  return Array.from({ length: 5 }, (_, i) => {
+    const starValue = i + 1;
+    const imgSrc = rate >= starValue ? FILLED_STAR_SRC$1 : EMPTY_STAR_SRC;
+    return `<img src="${imgSrc}" class="star" data-star-value="${starValue}" />`;
+  }).join("");
+}
+function extractReleaseYear(movieDetails) {
+  return movieDetails.release_date.split("-")[0];
+}
+function extractGenres(movieDetails) {
+  return movieDetails.genres.map((genre) => genre.name).join(", ");
+}
+const FILLED_STAR_SRC = "./images/star_filled.png";
+const CLOSE_BTN_SRC = "./images/modal_button_close.png";
+const STAR_MESSAGES = {
   0: "아직 평가하지 않았어요",
   1: "최악이예요",
   2: "별로예요",
@@ -205,27 +222,13 @@ const starMessage = {
   4: "재미있어요",
   5: "명작이에요"
 };
-const Modal = (movieDetails) => {
+function MovieItemModal(movieDetails, rate) {
   const year = extractReleaseYear(movieDetails);
   const genres = extractGenres(movieDetails);
-  const myRate = Number(localStorage.getItem(String(movieDetails.id))) || 0;
-  const $div = createElement({
-    tag: "div",
-    classNames: ["modal-background", "active"],
-    id: "modalBackground"
-  });
-  const renderStars = (rate) => {
-    return Array.from({ length: 5 }, (_, i) => {
-      const starValue = i + 1;
-      const imgSrc = rate >= starValue ? "./images/star_filled.png" : "./images/star_empty.png";
-      return `<img src="${imgSrc}" class="star" data-star-value="${starValue}" />`;
-    }).join("");
-  };
-  const render = (rate) => {
-    $div.innerHTML = `
+  return `
       <div class="modal">
         <button class="close-modal" id="closeModal">
-          <img src="./images/modal_button_close.png" />
+          <img src="${CLOSE_BTN_SRC}" />
         </button>
         <div class="modal-container">
           <div class="modal-image">
@@ -236,15 +239,14 @@ const Modal = (movieDetails) => {
             <p class="category">${year} · ${genres}</p>
             <p class="rate">
               <span>평균</span>
-              <img src="./images/star_filled.png" class="star" />
+              <img src="${FILLED_STAR_SRC}" class="star" />
               <span>${movieDetails.vote_average.toFixed(1)}</span>
             </p>
             <hr />
             <div class="my-rate">
               <p>내 별점</p>
-              ${renderStars(rate)}
-              <span>${starMessage[rate]}</span>
-              <span>(${rate * 2}/10)</span>
+              ${Stars(rate)}
+              <span>${STAR_MESSAGES[rate]} </span>
             </div>
             <hr />
             <p class="detail">
@@ -255,45 +257,48 @@ const Modal = (movieDetails) => {
         </div>
       </div>
     `;
-  };
+}
+const Modal = (movieDetails) => {
+  const $modalBg = createElement({
+    tag: "div",
+    classNames: ["modal-background", "active"],
+    id: "modalBackground"
+  });
   const $gnb = document.querySelector(".gnb");
-  const bindStarEvents = () => {
-    bindModalEvents();
-    const $stars = $div.querySelectorAll(".my-rate .star");
+  let escapeListener = null;
+  const render = (rate) => {
+    $modalBg.innerHTML = MovieItemModal(movieDetails, rate);
+  };
+  const closeModal = () => {
+    $gnb == null ? void 0 : $gnb.classList.remove("disappear");
+    $modalBg.remove();
+    if (escapeListener) {
+      document.removeEventListener("keydown", escapeListener);
+    }
+  };
+  const bindEvents = () => {
+    $gnb == null ? void 0 : $gnb.classList.add("disappear");
+    const $closeBtn = $modalBg.querySelector("#closeModal");
+    $closeBtn == null ? void 0 : $closeBtn.addEventListener("click", closeModal);
+    escapeListener = (e) => {
+      if (e.key === "Escape") closeModal();
+    };
+    document.addEventListener("keydown", escapeListener);
+    const $stars = $modalBg.querySelectorAll(".my-rate .star");
     $stars.forEach(($star) => {
       $star.addEventListener("click", () => {
         const newRate = Number($star.dataset.starValue);
         localStorage.setItem(String(movieDetails.id), String(newRate));
         render(newRate);
-        bindStarEvents();
+        bindEvents();
       });
     });
   };
-  const handleClose = () => {
-    $gnb == null ? void 0 : $gnb.classList.remove("disappear");
-    $div.remove();
-  };
-  const bindModalEvents = () => {
-    var _a;
-    $gnb == null ? void 0 : $gnb.classList.add("disappear");
-    (_a = $div.querySelector("#closeModal")) == null ? void 0 : _a.addEventListener("click", handleClose);
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        $gnb == null ? void 0 : $gnb.classList.remove("disappear");
-        handleClose();
-      }
-    });
-  };
-  render(myRate);
-  bindStarEvents();
-  return $div;
+  const initialRate = Number(localStorage.getItem(String(movieDetails.id))) || 0;
+  render(initialRate);
+  bindEvents();
+  return $modalBg;
 };
-function extractGenres(movieDetails) {
-  return movieDetails.genres.map((genre) => genre.name).join(", ");
-}
-function extractReleaseYear(movieDetails) {
-  return movieDetails.release_date.split("-")[0];
-}
 const nullImage = "/javascript-movie-review/assets/nullImage-DNlbCffn.png";
 async function fetchDetailsMovie(id) {
   const url = `https://api.themoviedb.org/3/movie/${id}?language=ko-KR`;
