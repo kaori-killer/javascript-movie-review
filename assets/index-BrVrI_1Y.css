@@ -477,6 +477,10 @@ p.rate > span {
   }  
 }
 @media (max-width: 480px) {
+  .modal-image {
+    display: none;
+  }
+  
   .background-container {
     padding: 28px;
     height: 300px;
