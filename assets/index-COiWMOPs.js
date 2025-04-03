@@ -210,6 +210,7 @@ class Movie {
     this.overview = overview;
   }
   static fromTMDB(data) {
+    console.log(data.poster_path);
     return new Movie(
       data.id,
       data.title,
@@ -307,7 +308,7 @@ function MovieItemModal(movieDetails, rate) {
       </button>
       <div class="modal-container">
         <div class="modal-image">
-          <img src="${proxiedImageUrl(movieDetails.posterUrl)}" />
+          <img src="${movieDetails.posterUrl}" />
         </div>
         <div class="modal-description">
           <h2>${movieDetails.title}</h2>
