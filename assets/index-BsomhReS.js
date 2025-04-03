@@ -208,7 +208,6 @@ class Movie {
     this.overview = overview;
   }
   static fromTMDB(data) {
-    console.log(imageUrl(data.poster_path));
     return new Movie(
       data.id,
       data.title,
@@ -299,7 +298,6 @@ function MovieItemModal(movieDetails, rate) {
   const year = extractReleaseYear(movieDetails);
   const genres = extractGenres(movieDetails);
   const movieId = String(movieDetails.id);
-  console.log(movieDetails.posterUrl, "ㄱ");
   return `
     <div class="modal">
       <button class="close-modal">
