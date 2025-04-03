@@ -199,10 +199,11 @@ write_fn = function(data) {
 };
 const ratingStorage = new RatingStorage();
 class Movie {
-  constructor(id, title, posterUrl, rating, releaseDate, genres, overview) {
+  constructor(id, title, posterUrl, voteAverage, rating, releaseDate, genres, overview) {
     this.id = id;
     this.title = title;
     this.posterUrl = posterUrl;
+    this.voteAverage = voteAverage;
     this.rating = rating;
     this.releaseDate = releaseDate;
     this.genres = genres;
@@ -214,6 +215,7 @@ class Movie {
       data.title,
       `https://image.tmdb.org/t/p/w500${data.poster_path}`,
       data.vote_average,
+      0,
       data.release_date,
       data.genres.map((g) => g.name),
       data.overview
@@ -313,7 +315,7 @@ function MovieItemModal(movieDetails, rate) {
           <p class="rate">
             <span>평균</span>
             <img src="${FilledStarSrc}" class="star" />
-            <span>${movieDetails.rating.toFixed(1)}</span>
+            <span>${movieDetails.voteAverage.toFixed(1)}</span>
           </p>
           <hr />
           ${MyRate(rate, movieId)}
