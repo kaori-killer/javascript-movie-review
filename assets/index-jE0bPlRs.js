@@ -5,6 +5,7 @@ var __accessCheck = (obj, member, msg) => member.has(obj) || __typeError("Cannot
 var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read from private field"), getter ? getter.call(obj) : member.get(obj));
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
+var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
 var __privateWrapper = (obj, member, setter, getter) => ({
   set _(value) {
     __privateSet(obj, member, value, setter);
@@ -13,7 +14,7 @@ var __privateWrapper = (obj, member, setter, getter) => ({
     return __privateGet(obj, member, getter);
   }
 });
-var _movieList, _page, _total;
+var _movieList, _page, _total, _STORAGE_KEY, _RatingStorage_instances, read_fn, write_fn;
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -51,7 +52,7 @@ var _movieList, _page, _total;
     fetch(link.href, fetchOpts);
   }
 })();
-async function fetchJson(url, options) {
+async function request(url, options) {
   const response = await fetch(url, options);
   if (!response.ok) {
     throw new Error(`HTTP 오류: ${response.status} ${response.statusText}`);
@@ -59,199 +60,6 @@ async function fetchJson(url, options) {
   const data = await response.json();
   return data;
 }
-async function fetchDetailsMovie(id) {
-  const url = `https://api.themoviedb.org/3/movie/${id}?language=ko-KR`;
-  const options = {
-    method: "GET",
-    headers: {
-      accept: "application/json",
-      Authorization: `Bearer ${"eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxYWMyODc3Y2Q4M2IwZDQ5MGRiODRhMDI5ZDBmNmMxMSIsIm5iZiI6MTc0MjI2NTAzMy4yOTksInN1YiI6IjY3ZDhkYWM5YzUzMzllYWJjNjM2NGQzYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.4zRY7Zc8S7gb3XdoyaKNQcaLuV37Z25Niw5aSHFg5sc"}`
-    }
-  };
-  const results = await fetchJson(url, options);
-  return results;
-}
-const createElement = ({
-  tag,
-  classNames = [],
-  ...attributes
-}) => {
-  const $element = document.createElement(tag);
-  classNames.forEach((className) => $element.classList.add(className));
-  Object.entries(attributes).forEach(([key, value]) => {
-    if (key === "required" && $element instanceof HTMLInputElement) {
-      $element.required = Boolean(value);
-    } else {
-      $element.setAttribute(key, value);
-    }
-  });
-  return $element;
-};
-const Button = ({ text, type }) => {
-  const $button = createElement({
-    tag: "button",
-    classNames: ["primary", type]
-  });
-  $button.textContent = text;
-  return $button;
-};
-const FilledStarSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAxCAYAAACcXioiAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAKXSURBVHgB7ZhBbtQwFIZ/zyAxu8IN0hNANqh0Q+YG9ASlJyhzgpmeADgBvQG9QbOCJXMDwgnIqoyEqPnjcWmVxElsPU9bKZ/kZuQ4rp/f+/OeA4yMjDxqFCKhvyHh7B+gUWKGhUp5jcATxGPJxb81v67wk39XiMAE8cj+/5riVH/HM0QgigEMn3e8JLcdXPzvOwYJEssDx40ehVNEQFzERrzAj9abU6TqFdYQJIYHls47f6yoBYlhQOa8E0HMogY0xNsYIC9maQ8c944QFrOYiDvFW2eG51KZWdIDy8Ejr/AeQnh7wIhwwzZl+8s2YbvGC/iXCmd8ds1nS85Vcq6qZip9PdNqAMOh2s3ENMUFattUnHKguQAaoYwhBbarLNm3Vq9pdI2GAfZN8hkPEc2q9hAf73ZNWgbtZpdDUM3wahhgLTzDQ0PjE0PovN7tFDFDaQWfN0tMWkLnhs63EI3IsNVDgvtgK+Yj7nzuGtL7GrUJ6hK7N6Jgm3PxRdeg3kRmJ5iz5dgdOXNC2rf4Cq9EthNdVGI9HJ6p/TNxTCM6xOoiqJjTX3kwUfgCWeZdYnURXI3SE1XlmUCGgovfRwBhHrhktp7hFyQJLLHDyukZXkKaTdicYQZo+cN56JyhB5o3kCdoTv/XaIz4vyFAB/4eeBrnE6Eh4ItFSAhlA8cVbCe2FQOfyeBJiAH9scpywNYy56aG3yA1fRJz1/CrhfriX/GQXpUDjow6qLL11IGfB1zxr82he6EOzK7nrser6tJmXPeJz1MHfgao1mSTsz/1KcJoxIqXfT530XI7gwd+BlzzH2rr3u31hIuZD6nb6xhvHOAIdZFPsAcPQsrpBNUuzXAh9XnQzrnipuxxRYuQDRkZGRm5H/4BIkyx5W7xkPAAAAAASUVORK5CYII=";
-const EmptyStarImage = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAxCAYAAACcXioiAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAQ4SURBVHgB7VlNctMwFP7UwrRl0/YGzgloNwyURd0TQE5AeoK2J2hyAuAEaU9QOEHMgvCzSW9QcwLChqbDNOI9RVEk106sWGZY5JvR+FlRJD29fxlYYYX/F/I79uQXxKgRAjWANh3Ro0ct0l0ptSPxQj2DYg31oIvZ5qHpLmpAcAno07+ZdWBIq+zoN5ZCgoCoQwLnhhK4oBUS8y7xGoFRhwT49CP9eqSfPb3aEBtoiH16BkJQCdDmW7AMl9VFq0w6GUCqdKvGBENoFXpj0R2LvjSUwCsERDAGtPHGVldiqBHeWf0xxwcEQkgJOMZr+3xxpHQ+Mb//CWfMIRmIDSUtlZlhplLrOJED41orIQgDecabHaP6pPY+E2OOEQChJFBkvC4E3lv0CQIgNw4o8Y6UiCNicQdjanxqQrVtQ0s9xk0bGkU5j+zR+E38tFa/1pF6aD1/GXrqfteJfkySzYkfImfjV8CS4mXjfY7jeUNkn+YXSxvxBR3Amc3II+fnEd4CS+tmQlH2bOGoO2JwC8umFS3aI8MckiuBPol3lnilqs3EyfjxQORjak/yxTsPStq/tYraKikMvY2pak769/SOhyTl3ek8j+aswb68g5qgGb4uM1Z+oxgzzg9+rheyvQTQll9xFcpfLwNeW9nMGG2r+4M9xmWAQ760BrCejjDQacI/hVqT1nYMXtDeMnYmCv7chp0asC2soymelRN5VcjPpC5ryhtGpnOMjnjpSEIhN5CR7reJNZvTCPckiT5OUTNIbU9oVwPYm5fkOnM2z5hb0OSeBNlGXcatjbVtdaX03qTNF0p+YUWWc8Mw1cXjUJWVchS3VPS7+s5RurnoJqNUSalSgI3MAnw6m9ivyoSO/lmVuaRgd1pm7lLJHOfz4gBNuIlaFKQ8HKlDicw7G+sBWmUPxisbVcYtrVixhqeojtiiO0XGWgT/dFqoED+BpNSiOlJrPu+g6c+AdEJ6gupIDLVEwe91L5S9dSOVqnyvpB3EjUkiN7Hr4xj8JBD+9CcFv7D8/MgvzfZjwBXxp0XDPa7XZ3NJvysXXxuILTopGsSbppRgwOkHvfb4unFBQpgYytMOSuuwo/+ZosKM4aB0R+mALMiZJGW7lLLnRddMMdUo+y3BRwKxtZEHuYlSFY6o9ualrtymEOq3nr6GcSGcOWOUhA8Dh5ht7KMhSTLUOFdy8yVWC4F91eBcdPGYLv2n66iVNSf95xAlsZwE9Gmp1FcqPY+tjQxpVk7C1Ccl3VqYFOKpNR/39UyKbktAlpeAjw1I65Xv/c+RFTWnGVuUbhf4cX3ibbgXYYxUzSlVBeZlBz4M9FCsmym147Kfj9Tt9P2DOiOLUgz4qFCnsJ/Tao9vX1ya0vjGnDnTsl7IL5XoU5Sc3GlGyhNR2Vn106lSK6lu66YBLEVNn2RrBZevqoRdYYUVvPAXJrOCc9SFL6sAAAAASUVORK5CYII=";
-function Stars(rate) {
-  return Array.from({ length: 5 }, (_, i) => {
-    const starValue = i + 1;
-    const imgSrc = rate >= starValue ? FilledStarSrc : EmptyStarImage;
-    return `<img src="${imgSrc}" class="star" data-star-value="${starValue}" />`;
-  }).join("");
-}
-function extractReleaseYear(movieDetails) {
-  return movieDetails.release_date.split("-")[0];
-}
-function extractGenres(movieDetails) {
-  return movieDetails.genres.map((genre) => genre.name).join(", ");
-}
-const imageUrl = (path, size = 400) => `https://image.tmdb.org/t/p/w${size}${path}`;
-const CloseBtnSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVCAYAAACpF6WWAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAFcSURBVHgBndVRToMwGAfw7+uyPXOEeQM9gezRGOcNBjzqNHEn8AhiIizxpYDxeZHps7uBu4EcwefpWlsYZsNSyv7JlrS0v0D7FQA2eXx+O5Q/2COUzqzp09wu2yj/wiS94xxu8g4E/3I0nJiCYfzqMGC+gCzRzAjrDjCg4u7I+mNnJEI0Hg09E5ADi3Z7+T1RjubgBklKoTVYhIy90yUHHreBNaB4/J6PZeshfokQ0Pk3rLIUerA7uPBOMtzubYJNwGJ4JXWwqIqFqBC7CVSiOtgErEUNYSWoRWXCZP7OObcVl74EeKQCZdR1CptdVoMyFut839bNxVqwprArs5UnD/cGNTAxBOWmHJiePDQE/3bZ5ORhG7BME4xTOusz0vk0BZtgcfImhEHPagvKXDnnrmqNRRn2yQpWYiLP2oBamOEyX9NiCUj+OZHvQxNwOwFNXdKB4581xtfe2eIXnjrtn65LhjUAAAAASUVORK5CYII=";
-const STAR_MESSAGES = {
-  0: "아직 평가하지 않았어요",
-  1: "최악이예요",
-  2: "별로예요",
-  3: "보통이에요",
-  4: "재미있어요",
-  5: "명작이에요"
-};
-function MovieItemModal(movieDetails, rate) {
-  const year = extractReleaseYear(movieDetails);
-  const genres = extractGenres(movieDetails);
-  return `
-      <div class="modal">
-        <button class="close-modal" id="closeModal">
-          <img src="${CloseBtnSrc}" />
-        </button>
-        <div class="modal-container">
-          <div class="modal-image">
-            <img src="${imageUrl(movieDetails.poster_path)}" />
-          </div>
-          <div class="modal-description">
-            <h2>${movieDetails.title}</h2>
-            <p class="category">${year} · ${genres}</p>
-            <p class="rate">
-              <span>평균</span>
-              <img src="${FilledStarSrc}" class="star" />
-              <span>${movieDetails.vote_average.toFixed(1)}</span>
-            </p>
-            <hr />
-            <div class="my-rate">
-              <p>내 별점</p>
-              ${Stars(rate)}
-              <span>${STAR_MESSAGES[rate]} </span>
-              <span>(${rate * 2} / 10)</span>
-            </div>
-            <hr />
-            <p class="detail">
-              <p><strong>줄거리</strong></p>
-              ${movieDetails.overview}
-            </p>
-          </div>
-        </div>
-      </div>
-    `;
-}
-const Modal = (movieDetails) => {
-  const $modalBg = createElement({
-    tag: "div",
-    classNames: ["modal-background", "active"],
-    id: "modalBackground"
-  });
-  const $gnb = document.querySelector(".gnb");
-  let escapeListener = null;
-  const render = (rate) => {
-    $modalBg.innerHTML = MovieItemModal(movieDetails, rate);
-  };
-  const closeModal = () => {
-    $gnb == null ? void 0 : $gnb.classList.remove("disappear");
-    $modalBg.remove();
-    if (escapeListener) {
-      document.removeEventListener("keydown", escapeListener);
-    }
-  };
-  const bindEvents = () => {
-    $gnb == null ? void 0 : $gnb.classList.add("disappear");
-    const $closeBtn = $modalBg.querySelector("#closeModal");
-    $closeBtn == null ? void 0 : $closeBtn.addEventListener("click", closeModal);
-    escapeListener = (e) => {
-      if (e.key === "Escape") closeModal();
-    };
-    document.addEventListener("keydown", escapeListener);
-    const $stars = $modalBg.querySelectorAll(".my-rate .star");
-    $stars.forEach(($star) => {
-      $star.addEventListener("click", () => {
-        const newRate = Number($star.dataset.starValue);
-        localStorage.setItem(String(movieDetails.id), String(newRate));
-        render(newRate);
-        bindEvents();
-      });
-    });
-  };
-  const initialRate = Number(localStorage.getItem(String(movieDetails.id))) || 0;
-  render(initialRate);
-  bindEvents();
-  return $modalBg;
-};
-const MoviePreviewInfo = ({ movie, bigFont = true }) => {
-  const title = movie == null ? void 0 : movie.title;
-  const voteAverage = movie == null ? void 0 : movie.vote_average.toFixed(1);
-  const $fragment2 = document.createDocumentFragment();
-  const $rate = createElement({ tag: "div", classNames: ["rate"] });
-  const $starImg = createElement({
-    tag: "img",
-    classNames: ["star"],
-    src: EmptyStarImage
-  });
-  const $rateValue = createElement({
-    tag: "span"
-  });
-  const $title = createElement({
-    tag: "div"
-  });
-  if (bigFont) {
-    $rateValue.classList.add("rate-value");
-    $title.classList.add("title");
-  }
-  $fragment2.append($rate);
-  $rate.append($starImg);
-  $rate.append($rateValue);
-  $fragment2.append($title);
-  $rateValue.textContent = voteAverage;
-  $title.textContent = title;
-  return $fragment2;
-};
-const BUTTON_DETAIL = "자세히 보기";
-const TopRatedContainer = ({ popularMovie }) => {
-  const $topRatedContainer = createElement({
-    tag: "div",
-    classNames: ["top-rated-container"]
-  });
-  const $topRatedMovie = createElement({
-    tag: "div",
-    classNames: ["top-rated-movie"]
-  });
-  $topRatedContainer.append($topRatedMovie);
-  $topRatedMovie.append(
-    MoviePreviewInfo({
-      bigFont: true,
-      movie: popularMovie
-    })
-  );
-  const $button = Button({ text: BUTTON_DETAIL, type: "detail" });
-  $topRatedMovie.append($button);
-  $button.addEventListener("click", async () => {
-    const movieDetails = await fetchDetailsMovie(popularMovie.id);
-    const $wrap = document.querySelector("#wrap");
-    $wrap.appendChild(Modal(movieDetails));
-  });
-  return $topRatedContainer;
-};
 async function fetchSearchMovies(query, page2) {
   const url = `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(
     query
@@ -263,11 +71,20 @@ async function fetchSearchMovies(query, page2) {
       Authorization: `Bearer ${"eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxYWMyODc3Y2Q4M2IwZDQ5MGRiODRhMDI5ZDBmNmMxMSIsIm5iZiI6MTc0MjI2NTAzMy4yOTksInN1YiI6IjY3ZDhkYWM5YzUzMzllYWJjNjM2NGQzYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.4zRY7Zc8S7gb3XdoyaKNQcaLuV37Z25Niw5aSHFg5sc"}`
     }
   };
-  const { results, total_pages } = await fetchJson(
+  const { results, total_pages } = await request(
     url,
     options
   );
   return { results, totalPages: total_pages };
+}
+function createElement(props) {
+  const { tag, classNames = [], attributes = {} } = props;
+  const $element = document.createElement(tag);
+  classNames.forEach((className) => $element.classList.add(className));
+  Object.entries(attributes).forEach(([key, value]) => {
+    $element[key] = value;
+  });
+  return $element;
 }
 class Movies {
   constructor() {
@@ -309,17 +126,243 @@ class Page {
     __privateSet(this, _total, total);
   }
   hasNextPage() {
-    return __privateGet(this, _page) >= __privateGet(this, _total);
+    return __privateGet(this, _page) <= __privateGet(this, _total);
   }
 }
 _page = new WeakMap();
 _total = new WeakMap();
 const page = new Page();
 const SearchButtonImage = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAC5SURBVHgBlVIBDYMwEPxOAQ5WCUjonCABB+CEOaiEzsEkdA7AQfds1+TWtGRccmny93f9PogAKaVOOSlj+mJVemUvLewiGluYaiZLtwSlo/pM5rE0LhB8Y5oxj14KTwjNt9BEPRc/kAOofEfbkGsX5QaxO/Becb44LSBtbtxmaUEdC661OXymCG2ppfLa90ZPk3Dd1swDpWesCI2l2VQCnB75LQ9jzIbmoLRY0E3+Rfr9w6KRE6Cb5Q2u4UqS3Rky4QAAAABJRU5ErkJggg==";
+const EmptyStarSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAxCAYAAACcXioiAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAQ4SURBVHgB7VlNctMwFP7UwrRl0/YGzgloNwyURd0TQE5AeoK2J2hyAuAEaU9QOEHMgvCzSW9QcwLChqbDNOI9RVEk106sWGZY5JvR+FlRJD29fxlYYYX/F/I79uQXxKgRAjWANh3Ro0ct0l0ptSPxQj2DYg31oIvZ5qHpLmpAcAno07+ZdWBIq+zoN5ZCgoCoQwLnhhK4oBUS8y7xGoFRhwT49CP9eqSfPb3aEBtoiH16BkJQCdDmW7AMl9VFq0w6GUCqdKvGBENoFXpj0R2LvjSUwCsERDAGtPHGVldiqBHeWf0xxwcEQkgJOMZr+3xxpHQ+Mb//CWfMIRmIDSUtlZlhplLrOJED41orIQgDecabHaP6pPY+E2OOEQChJFBkvC4E3lv0CQIgNw4o8Y6UiCNicQdjanxqQrVtQ0s9xk0bGkU5j+zR+E38tFa/1pF6aD1/GXrqfteJfkySzYkfImfjV8CS4mXjfY7jeUNkn+YXSxvxBR3Amc3II+fnEd4CS+tmQlH2bOGoO2JwC8umFS3aI8MckiuBPol3lnilqs3EyfjxQORjak/yxTsPStq/tYraKikMvY2pak769/SOhyTl3ek8j+aswb68g5qgGb4uM1Z+oxgzzg9+rheyvQTQll9xFcpfLwNeW9nMGG2r+4M9xmWAQ760BrCejjDQacI/hVqT1nYMXtDeMnYmCv7chp0asC2soymelRN5VcjPpC5ryhtGpnOMjnjpSEIhN5CR7reJNZvTCPckiT5OUTNIbU9oVwPYm5fkOnM2z5hb0OSeBNlGXcatjbVtdaX03qTNF0p+YUWWc8Mw1cXjUJWVchS3VPS7+s5RurnoJqNUSalSgI3MAnw6m9ivyoSO/lmVuaRgd1pm7lLJHOfz4gBNuIlaFKQ8HKlDicw7G+sBWmUPxisbVcYtrVixhqeojtiiO0XGWgT/dFqoED+BpNSiOlJrPu+g6c+AdEJ6gupIDLVEwe91L5S9dSOVqnyvpB3EjUkiN7Hr4xj8JBD+9CcFv7D8/MgvzfZjwBXxp0XDPa7XZ3NJvysXXxuILTopGsSbppRgwOkHvfb4unFBQpgYytMOSuuwo/+ZosKM4aB0R+mALMiZJGW7lLLnRddMMdUo+y3BRwKxtZEHuYlSFY6o9ualrtymEOq3nr6GcSGcOWOUhA8Dh5ht7KMhSTLUOFdy8yVWC4F91eBcdPGYLv2n66iVNSf95xAlsZwE9Gmp1FcqPY+tjQxpVk7C1Ccl3VqYFOKpNR/39UyKbktAlpeAjw1I65Xv/c+RFTWnGVuUbhf4cX3ibbgXYYxUzSlVBeZlBz4M9FCsmym147Kfj9Tt9P2DOiOLUgz4qFCnsJ/Tao9vX1ya0vjGnDnTsl7IL5XoU5Sc3GlGyhNR2Vn106lSK6lu66YBLEVNn2RrBZevqoRdYYUVvPAXJrOCc9SFL6sAAAAASUVORK5CYII=";
+const MoviePreviewInfo = ({ movie, bigFont = true }) => {
+  const title = movie == null ? void 0 : movie.title;
+  const voteAverage = movie == null ? void 0 : movie.vote_average.toFixed(1);
+  const $fragment2 = document.createDocumentFragment();
+  const $rate = createElement({ tag: "div", classNames: ["rate"] });
+  const $starImg = createElement({
+    tag: "img",
+    classNames: ["star"],
+    attributes: {
+      src: EmptyStarSrc
+    }
+  });
+  const $rateValue = createElement({
+    tag: "span"
+  });
+  const $title = createElement({
+    tag: "div"
+  });
+  if (bigFont) {
+    $rateValue.classList.add("rate-value");
+    $title.classList.add("title");
+  }
+  $fragment2.append($rate);
+  $rate.append($starImg);
+  $rate.append($rateValue);
+  $fragment2.append($title);
+  $rateValue.textContent = voteAverage;
+  $title.textContent = title;
+  return $fragment2;
+};
+function proxiedImageUrl(path) {
+  return `/api/image${path}`;
+}
+class RatingStorage {
+  constructor() {
+    __privateAdd(this, _RatingStorage_instances);
+    __privateAdd(this, _STORAGE_KEY, "movie-rating");
+  }
+  get(movieId) {
+    return __privateMethod(this, _RatingStorage_instances, read_fn).call(this)[movieId] ?? 0;
+  }
+  set(movieId, rating) {
+    const ratings = __privateMethod(this, _RatingStorage_instances, read_fn).call(this);
+    ratings[movieId] = rating;
+    __privateMethod(this, _RatingStorage_instances, write_fn).call(this, ratings);
+  }
+  has(movieId) {
+    return movieId in __privateMethod(this, _RatingStorage_instances, read_fn).call(this);
+  }
+}
+_STORAGE_KEY = new WeakMap();
+_RatingStorage_instances = new WeakSet();
+read_fn = function() {
+  const raw = localStorage.getItem(__privateGet(this, _STORAGE_KEY));
+  try {
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+write_fn = function(data) {
+  localStorage.setItem(__privateGet(this, _STORAGE_KEY), JSON.stringify(data));
+};
+const ratingStorage = new RatingStorage();
+class Movie {
+  constructor(id, title, posterUrl, rating, releaseDate, genres, overview) {
+    this.id = id;
+    this.title = title;
+    this.posterUrl = posterUrl;
+    this.rating = rating;
+    this.releaseDate = releaseDate;
+    this.genres = genres;
+    this.overview = overview;
+  }
+  static fromTMDB(data) {
+    return new Movie(
+      data.id,
+      data.title,
+      `https://image.tmdb.org/t/p/w500${data.poster_path}`,
+      data.vote_average,
+      data.release_date,
+      data.genres.map((g) => g.name),
+      data.overview
+    );
+  }
+}
+async function fetchDetailsMovie(id) {
+  const url = `https://api.themoviedb.org/3/movie/${id}?language=ko-KR`;
+  const options = {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      Authorization: `Bearer ${"eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxYWMyODc3Y2Q4M2IwZDQ5MGRiODRhMDI5ZDBmNmMxMSIsIm5iZiI6MTc0MjI2NTAzMy4yOTksInN1YiI6IjY3ZDhkYWM5YzUzMzllYWJjNjM2NGQzYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.4zRY7Zc8S7gb3XdoyaKNQcaLuV37Z25Niw5aSHFg5sc"}`
+    }
+  };
+  const data = await request(url, options);
+  return Movie.fromTMDB(data);
+}
+const Modal = ({ content, onOpen, onClose }) => {
+  const $modalBg = document.createElement("div");
+  $modalBg.classList.add("modal-background", "active");
+  $modalBg.id = "modalBackground";
+  const render = () => {
+    $modalBg.innerHTML = content;
+  };
+  const closeModal = () => {
+    onClose == null ? void 0 : onClose();
+    $modalBg.remove();
+    document.removeEventListener("keydown", handleEscapeKey);
+    document.removeEventListener("click", handleCloseClick);
+  };
+  const handleEscapeKey = (e) => {
+    if (e.key === "Escape") closeModal();
+  };
+  const handleCloseClick = (e) => {
+    const target = e.target;
+    if (target.className === "closeModal") closeModal();
+  };
+  const bindCloseEvents = () => {
+    document.addEventListener("click", handleCloseClick);
+    document.addEventListener("keydown", handleEscapeKey);
+  };
+  render();
+  bindCloseEvents();
+  onOpen == null ? void 0 : onOpen();
+  return $modalBg;
+};
+const FilledStarSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAxCAYAAACcXioiAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAKXSURBVHgB7ZhBbtQwFIZ/zyAxu8IN0hNANqh0Q+YG9ASlJyhzgpmeADgBvQG9QbOCJXMDwgnIqoyEqPnjcWmVxElsPU9bKZ/kZuQ4rp/f+/OeA4yMjDxqFCKhvyHh7B+gUWKGhUp5jcATxGPJxb81v67wk39XiMAE8cj+/5riVH/HM0QgigEMn3e8JLcdXPzvOwYJEssDx40ehVNEQFzERrzAj9abU6TqFdYQJIYHls47f6yoBYlhQOa8E0HMogY0xNsYIC9maQ8c944QFrOYiDvFW2eG51KZWdIDy8Ejr/AeQnh7wIhwwzZl+8s2YbvGC/iXCmd8ds1nS85Vcq6qZip9PdNqAMOh2s3ENMUFattUnHKguQAaoYwhBbarLNm3Vq9pdI2GAfZN8hkPEc2q9hAf73ZNWgbtZpdDUM3wahhgLTzDQ0PjE0PovN7tFDFDaQWfN0tMWkLnhs63EI3IsNVDgvtgK+Yj7nzuGtL7GrUJ6hK7N6Jgm3PxRdeg3kRmJ5iz5dgdOXNC2rf4Cq9EthNdVGI9HJ6p/TNxTCM6xOoiqJjTX3kwUfgCWeZdYnURXI3SE1XlmUCGgovfRwBhHrhktp7hFyQJLLHDyukZXkKaTdicYQZo+cN56JyhB5o3kCdoTv/XaIz4vyFAB/4eeBrnE6Eh4ItFSAhlA8cVbCe2FQOfyeBJiAH9scpywNYy56aG3yA1fRJz1/CrhfriX/GQXpUDjow6qLL11IGfB1zxr82he6EOzK7nrser6tJmXPeJz1MHfgao1mSTsz/1KcJoxIqXfT530XI7gwd+BlzzH2rr3u31hIuZD6nb6xhvHOAIdZFPsAcPQsrpBNUuzXAh9XnQzrnipuxxRYuQDRkZGRm5H/4BIkyx5W7xkPAAAAAASUVORK5CYII=";
+function Stars(rate, id) {
+  return Array.from({ length: 5 }, (_, i) => {
+    const starValue = i + 1;
+    const imgSrc = rate >= starValue ? FilledStarSrc : EmptyStarSrc;
+    return `<img src="${imgSrc}" class="star" data-star-value="${starValue}" data-id=${id} style="cursor: pointer;" />`;
+  }).join("");
+}
+const STAR_MESSAGES = {
+  0: "아직 평가하지 않았어요",
+  1: "최악이예요",
+  2: "별로예요",
+  3: "보통이에요",
+  4: "재미있어요",
+  5: "명작이에요"
+};
+function MyRate(rate, id) {
+  return `
+        <div class="my-rate" data-id="${id}">
+            <p>내 별점</p>
+            ${Stars(rate, id)}
+            <span>${STAR_MESSAGES[rate]}</span>
+            <span>(${rate * 2} / 10)</span>
+        </div>
+    `;
+}
+function extractReleaseYear(movieDetails) {
+  return movieDetails.releaseDate.split("-")[0];
+}
+function extractGenres(movieDetails) {
+  return movieDetails.genres.map((genre) => genre).join(", ");
+}
+const CloseBtnSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVCAYAAACpF6WWAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAFcSURBVHgBndVRToMwGAfw7+uyPXOEeQM9gezRGOcNBjzqNHEn8AhiIizxpYDxeZHps7uBu4EcwefpWlsYZsNSyv7JlrS0v0D7FQA2eXx+O5Q/2COUzqzp09wu2yj/wiS94xxu8g4E/3I0nJiCYfzqMGC+gCzRzAjrDjCg4u7I+mNnJEI0Hg09E5ADi3Z7+T1RjubgBklKoTVYhIy90yUHHreBNaB4/J6PZeshfokQ0Pk3rLIUerA7uPBOMtzubYJNwGJ4JXWwqIqFqBC7CVSiOtgErEUNYSWoRWXCZP7OObcVl74EeKQCZdR1CptdVoMyFut839bNxVqwprArs5UnD/cGNTAxBOWmHJiePDQE/3bZ5ORhG7BME4xTOusz0vk0BZtgcfImhEHPagvKXDnnrmqNRRn2yQpWYiLP2oBamOEyX9NiCUj+OZHvQxNwOwFNXdKB4581xtfe2eIXnjrtn65LhjUAAAAASUVORK5CYII=";
+function MovieItemModal(movieDetails, rate) {
+  const year = extractReleaseYear(movieDetails);
+  const genres = extractGenres(movieDetails);
+  const movieId = String(movieDetails.id);
+  return `
+    <div class="modal">
+      <button class="close-modal">
+        <img src="${CloseBtnSrc}" class="closeModal" />
+      </button>
+      <div class="modal-container">
+        <div class="modal-image">
+          <img src="${proxiedImageUrl(movieDetails.posterUrl)}" />
+        </div>
+        <div class="modal-description">
+          <h2>${movieDetails.title}</h2>
+          <p class="category">${year} · ${genres}</p>
+          <p class="rate">
+            <span>평균</span>
+            <img src="${FilledStarSrc}" class="star" />
+            <span>${movieDetails.rating.toFixed(1)}</span>
+          </p>
+          <hr />
+          ${MyRate(rate, movieId)}
+          <hr />
+          <p class="detail">
+            <p><strong>줄거리</strong></p>
+            ${movieDetails.overview}
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+document.addEventListener("click", (event) => {
+  const target = event.target;
+  if (target.matches(".star")) {
+    const starValue = target.getAttribute("data-star-value");
+    const id = target.getAttribute("data-id");
+    if (starValue && id) {
+      const rate = parseInt(starValue, 10);
+      ratingStorage.set(id, rate);
+      const $myRate = document.querySelector(`.my-rate[data-id="${id}"]`);
+      if ($myRate) {
+        $myRate.innerHTML = MyRate(rate, id);
+      }
+    }
+  }
+});
+const openMovieModal = async (movie) => {
+  const movieDetails = await fetchDetailsMovie(movie.id);
+  const initialRate = ratingStorage.get(String(movieDetails.id));
+  const $modal = Modal({
+    content: MovieItemModal(movieDetails, initialRate),
+    onOpen: () => {
+      var _a;
+      return (_a = document.querySelector(".gnb")) == null ? void 0 : _a.classList.add("disappear");
+    },
+    onClose: () => {
+      var _a;
+      return (_a = document.querySelector(".gnb")) == null ? void 0 : _a.classList.remove("disappear");
+    }
+  });
+  document.body.appendChild($modal);
+};
 const nullImage = "/javascript-movie-review/assets/nullImage-DNlbCffn.png";
 const MovieItem = ({ movie }) => {
   const title = movie == null ? void 0 : movie.title;
   const posterPath = movie == null ? void 0 : movie.poster_path;
+  const movieId = String(movie.id);
   const $li = createElement({
     tag: "li"
   });
@@ -330,8 +373,10 @@ const MovieItem = ({ movie }) => {
   const $img = createElement({
     tag: "img",
     classNames: ["thumbnail"],
-    src: posterPath ? `${imageUrl(posterPath)}` : nullImage,
-    alt: `${title}`
+    attributes: {
+      src: posterPath ? `${proxiedImageUrl(posterPath)}` : nullImage,
+      alt: `${title}`
+    }
   });
   $img.onerror = () => {
     $img.src = nullImage;
@@ -345,15 +390,10 @@ const MovieItem = ({ movie }) => {
     })
   );
   $li.addEventListener("click", async () => {
-    const movieDetails = await fetchDetailsMovie(movie.id);
-    const $wrap = document.querySelector("#wrap");
-    $wrap.appendChild(Modal(movieDetails));
+    openMovieModal(movie);
   });
-  if (!localStorage.getItem(movie.id)) {
-    localStorage.setItem(
-      String(movie.id),
-      "0"
-    );
+  if (!ratingStorage.has(movieId)) {
+    ratingStorage.set(movieId, 0);
   }
   return $li;
 };
@@ -385,9 +425,11 @@ const NothingMovieList = () => {
   });
   const $img = createElement({
     tag: "img",
-    src: NothingImg,
-    alt: "으아아",
-    classNames: ["nothing-img"]
+    classNames: ["nothing-img"],
+    attributes: {
+      src: NothingImg,
+      alt: "으아아"
+    }
   });
   $p.textContent = NOTHING_TEXT;
   $fragment.appendChild($p);
@@ -416,8 +458,8 @@ const MovieList = ({ movies: movies2, status }) => {
   return $ul;
 };
 function removeElement(selector) {
-  const el = document.querySelector(selector);
-  if (el) el.remove();
+  const $element = document.querySelector(selector);
+  if ($element) $element.remove();
 }
 function hideLoadMoreButton() {
   const $button = document.querySelector(".primary.more");
@@ -472,7 +514,9 @@ function createSearchBarUI(onSubmit) {
   const $input = createElement({
     tag: "input",
     classNames: ["search-bar"],
-    placeholder: SEARCH_BAR_PLACEHOLDER
+    attributes: {
+      placeholder: SEARCH_BAR_PLACEHOLDER
+    }
   });
   const $button = createElement({
     tag: "button",
@@ -480,7 +524,9 @@ function createSearchBarUI(onSubmit) {
   });
   const $img = createElement({
     tag: "img",
-    src: SearchButtonImage
+    attributes: {
+      src: SearchButtonImage
+    }
   });
   $button.appendChild($img);
   $form.append($input, $button);
@@ -534,13 +580,47 @@ const Gnb = () => {
   });
   const $logoImg = createElement({
     tag: "img",
-    src: LogoImg,
-    alt: "MovieList"
+    attributes: {
+      src: LogoImg,
+      alt: "MovieList"
+    }
   });
   $div.appendChild($logo);
   $logo.appendChild($logoImg);
   $div.appendChild(SearchBar());
   return $div;
+};
+const Button = ({ text, type }) => {
+  const $button = createElement({
+    tag: "button",
+    classNames: ["primary", type]
+  });
+  $button.textContent = text;
+  return $button;
+};
+const BUTTON_DETAIL = "자세히 보기";
+const TopRatedContainer = ({ popularMovie }) => {
+  const $topRatedContainer = createElement({
+    tag: "div",
+    classNames: ["top-rated-container"]
+  });
+  const $topRatedMovie = createElement({
+    tag: "div",
+    classNames: ["top-rated-movie"]
+  });
+  $topRatedMovie.append(
+    MoviePreviewInfo({
+      bigFont: true,
+      movie: popularMovie
+    })
+  );
+  const $button = Button({ text: BUTTON_DETAIL, type: "detail" });
+  $button.addEventListener("click", async () => {
+    openMovieModal(popularMovie);
+  });
+  $topRatedMovie.append($button);
+  $topRatedContainer.append($topRatedMovie);
+  return $topRatedContainer;
 };
 const Header = ({ popularMovie }) => {
   const title = popularMovie == null ? void 0 : popularMovie.title;
@@ -555,12 +635,16 @@ const Header = ({ popularMovie }) => {
   const $overlay = createElement({
     tag: "div",
     classNames: ["overlay"],
-    "aria-hidden": "true"
+    attributes: {
+      "aria-hidden": "true"
+    }
   });
   const $img = createElement({
     tag: "img",
-    src: `${imageUrl(posterPath)}`,
-    alt: `${title}`
+    attributes: {
+      src: `${proxiedImageUrl(posterPath)}`,
+      alt: `${title}`
+    }
   });
   $header.appendChild(Gnb());
   $header.appendChild($backgroundContainer);
@@ -571,24 +655,22 @@ const Header = ({ popularMovie }) => {
 };
 function setupInfiniteScroll({
   onLoad,
+  onEnd,
+  hasNextPage,
   offset = 100
 }) {
   let isLoading = false;
   const handleScroll = () => {
     const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-    if (!isLoading && scrollTop + clientHeight >= scrollHeight - offset) {
-      isLoading = true;
-      onLoad().finally(() => {
-        if (!page.hasNextPage()) {
-          isLoading = true;
-        }
-        isLoading = false;
-      });
-    }
-    if (!page.hasNextPage()) {
-      const $button = document.querySelector(".primary.more");
-      $button == null ? void 0 : $button.classList.add("disappear");
-    }
+    const reachedBottom = scrollTop + clientHeight >= scrollHeight - offset;
+    if (!reachedBottom || isLoading || !hasNextPage()) return;
+    isLoading = true;
+    onLoad().catch(console.error).finally(() => {
+      isLoading = false;
+      if (!hasNextPage()) {
+        onEnd == null ? void 0 : onEnd();
+      }
+    });
   };
   window.addEventListener("scroll", handleScroll);
   return () => {
@@ -604,7 +686,7 @@ async function fetchPopularMovies(page2) {
       Authorization: `Bearer ${"eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxYWMyODc3Y2Q4M2IwZDQ5MGRiODRhMDI5ZDBmNmMxMSIsIm5iZiI6MTc0MjI2NTAzMy4yOTksInN1YiI6IjY3ZDhkYWM5YzUzMzllYWJjNjM2NGQzYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.4zRY7Zc8S7gb3XdoyaKNQcaLuV37Z25Niw5aSHFg5sc"}`
     }
   };
-  const { results, total_pages } = await fetchJson(
+  const { results, total_pages } = await request(
     url,
     options
   );
@@ -619,42 +701,40 @@ const MovieContainer = ({ movies: movies2, status }) => {
   $h2.textContent = "지금 인기 있는 영화";
   const movieListElement = MovieList({ movies: movies2, status });
   const $button = Button({ text: BUTTON_MORE, type: "more" });
+  $button.addEventListener("click", () => {
+    const params = new URLSearchParams(window.location.search);
+    const currentPage = page.getNextPage();
+    renderMovieList(async () => {
+      const res = params.has("query") ? await fetchSearchMovies(params.get("query") || "", currentPage) : await fetchPopularMovies(currentPage);
+      return {
+        results: res.results,
+        totalPages: res.totalPages
+      };
+    });
+  });
   $section.appendChild($h2);
   $section.appendChild(movieListElement);
   $main.appendChild($section);
   $main.appendChild($button);
   $container.appendChild($main);
-  init();
   return $container;
 };
-const init = () => {
-  setupInfiniteScroll({
-    onLoad: async () => {
-      const params = new URLSearchParams(window.location.search);
-      const currentPage = page.getNextPage();
-      const res = params.has("query") ? await fetchSearchMovies(params.get("query") || "", currentPage) : await fetchPopularMovies(currentPage);
-      page.setTotalPages(res.totalPages);
-      renderMovieList(
-        () => Promise.resolve({
-          results: res.results,
-          totalPages: res.totalPages
-        })
-      );
-    },
-    offset: 150
-  });
-};
-const $moreButton = document.querySelector(".more");
-$moreButton == null ? void 0 : $moreButton.addEventListener("click", () => {
-  const params = new URLSearchParams(window.location.search);
-  const currentPage = page.getNextPage();
-  renderMovieList(async () => {
+setupInfiniteScroll({
+  onLoad: async () => {
+    const params = new URLSearchParams(window.location.search);
+    const currentPage = page.getNextPage();
     const res = params.has("query") ? await fetchSearchMovies(params.get("query") || "", currentPage) : await fetchPopularMovies(currentPage);
-    return {
-      results: res.results,
-      totalPages: res.totalPages
-    };
-  });
+    page.setTotalPages(res.totalPages);
+    renderMovieList(
+      () => Promise.resolve({ results: res.results, totalPages: res.totalPages })
+    );
+  },
+  hasNextPage: () => page.hasNextPage(),
+  onEnd: () => {
+    var _a;
+    (_a = document.querySelector(".primary.more")) == null ? void 0 : _a.classList.add("disappear");
+  },
+  offset: 150
 });
 const LogoImage = "/javascript-movie-review/assets/woowacourse_logo-C2VvP7wQ.png";
 const Footer = () => {
@@ -670,8 +750,10 @@ const Footer = () => {
   });
   const $img = createElement({
     tag: "img",
-    src: LogoImage,
-    width: "180"
+    attributes: {
+      src: LogoImage,
+      width: "180"
+    }
   });
   const COPY_TEXT = "우아한테크코스 All Rights Reserved.";
   $copy.textContent = COPY_TEXT;
@@ -685,11 +767,15 @@ const Main = ({ movies: movies2, status }) => {
   if ($body) {
     const $wrap = createElement({
       tag: "div",
-      id: "wrap"
+      attributes: {
+        id: "wrap"
+      }
     });
     const $container = createElement({
       tag: "div",
-      id: "container"
+      attributes: {
+        id: "container"
+      }
     });
     $body.appendChild($wrap);
     $container.appendChild(
