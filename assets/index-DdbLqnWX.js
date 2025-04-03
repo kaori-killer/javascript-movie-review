@@ -198,6 +198,7 @@ write_fn = function(data) {
   localStorage.setItem(__privateGet(this, _STORAGE_KEY), JSON.stringify(data));
 };
 const ratingStorage = new RatingStorage();
+const imageUrl = (path, size = 400) => `https://image.tmdb.org/t/p/w${size}${path}`;
 class Movie {
   constructor(id, title, posterUrl, voteAverage, rating, releaseDate, genres, overview) {
     this.id = id;
@@ -213,7 +214,7 @@ class Movie {
     return new Movie(
       data.id,
       data.title,
-      proxiedImageUrl(data.poster_path),
+      imageUrl(data.poster_path),
       data.vote_average,
       0,
       data.release_date,
