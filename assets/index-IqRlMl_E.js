@@ -165,7 +165,7 @@ const MoviePreviewInfo = ({ movie, bigFont = true }) => {
   return $fragment2;
 };
 function proxiedImageUrl(path) {
-  return `/api/image${path}`;
+  return `./api/image${path}`;
 }
 class RatingStorage {
   constructor() {
@@ -210,7 +210,6 @@ class Movie {
     this.overview = overview;
   }
   static fromTMDB(data) {
-    proxiedImageUrl(data.poster_path);
     return new Movie(
       data.id,
       data.title,
@@ -374,7 +373,6 @@ const MovieItem = ({ movie }) => {
     tag: "div",
     classNames: ["item"]
   });
-  console.log(proxiedImageUrl(posterPath), "ss");
   const $img = createElement({
     tag: "img",
     classNames: ["thumbnail"],
