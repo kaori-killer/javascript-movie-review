@@ -164,9 +164,6 @@ const MoviePreviewInfo = ({ movie, bigFont = true }) => {
   $title.textContent = title;
   return $fragment2;
 };
-function proxiedImageUrl(path) {
-  return `./api/image${path}`;
-}
 class RatingStorage {
   constructor() {
     __privateAdd(this, _RatingStorage_instances);
@@ -211,6 +208,7 @@ class Movie {
     this.overview = overview;
   }
   static fromTMDB(data) {
+    console.log(imageUrl(data.poster_path));
     return new Movie(
       data.id,
       data.title,
@@ -378,7 +376,7 @@ const MovieItem = ({ movie }) => {
     tag: "img",
     classNames: ["thumbnail"],
     attributes: {
-      src: posterPath ? `${proxiedImageUrl(posterPath)}` : nullImage,
+      src: posterPath ? `${imageUrl(posterPath)}` : nullImage,
       alt: `${title}`
     }
   });
@@ -646,7 +644,7 @@ const Header = ({ popularMovie }) => {
   const $img = createElement({
     tag: "img",
     attributes: {
-      src: `${proxiedImageUrl(posterPath)}`,
+      src: `${imageUrl(posterPath)}`,
       alt: `${title}`
     }
   });
