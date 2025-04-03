@@ -210,11 +210,11 @@ class Movie {
     this.overview = overview;
   }
   static fromTMDB(data) {
-    console.log(data.poster_path);
+    proxiedImageUrl(data.poster_path);
     return new Movie(
       data.id,
       data.title,
-      data.poster_path,
+      proxiedImageUrl(data.poster_path),
       data.vote_average,
       0,
       data.release_date,
@@ -301,6 +301,7 @@ function MovieItemModal(movieDetails, rate) {
   const year = extractReleaseYear(movieDetails);
   const genres = extractGenres(movieDetails);
   const movieId = String(movieDetails.id);
+  console.log(movieDetails.posterUrl, "ㄱ");
   return `
     <div class="modal">
       <button class="close-modal">
@@ -373,6 +374,7 @@ const MovieItem = ({ movie }) => {
     tag: "div",
     classNames: ["item"]
   });
+  console.log(proxiedImageUrl(posterPath), "ss");
   const $img = createElement({
     tag: "img",
     classNames: ["thumbnail"],
