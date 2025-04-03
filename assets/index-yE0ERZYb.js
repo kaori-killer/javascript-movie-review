@@ -213,7 +213,7 @@ class Movie {
     return new Movie(
       data.id,
       data.title,
-      `https://image.tmdb.org/t/p/w500${data.poster_path}`,
+      data.poster_path,
       data.vote_average,
       0,
       data.release_date,
